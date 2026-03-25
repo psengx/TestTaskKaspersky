@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using TestTaskKaspersky.Models;
 using TestTaskKaspersky.Services;
 
@@ -9,21 +8,40 @@ namespace TestTaskKaspersky.Controllers
     [ApiController]
     public class ArchiveController : ControllerBase
     {
+        private ArchiveService _archiveService = new ArchiveService();
+
         // Создаю задачку архивации
         [HttpPut("/initialize")]
         public Guid InitializeArchiveTask(List<string> files)
         {
-            ArchiveService archiveService = new ArchiveService();
-            Guid id = archiveService.InitializeTask(files);
-            ArchiveTask task = ArchiveService.archiveTasks.First(task => task.Key == id).Value; // ищу таску в словаре тасков
-            Task.Run(() => archiveService.Archive(task)); // запускаю асинхронный процесс архивации
+            Guid id = _archiveService.InitializeTask(files);
+            ArchiveTask? task = _archiveService.GetById(id); // ищу таску в словаре тасков
+            Task.Run(() => _archiveService.Archive(task)); // запускаю асинхронный процесс архивации
             return id;
         }
 
-        [HttpGet]
+        [HttpGet("/status")]
         public string GetArchiveTaskStatus(Guid id)
         {
-            return ArchiveService.archiveTasks.First(task => task.Key == id).Value.Status;
+            ArchiveTask? task = _archiveService.GetById(id);
+            if (task == null)
+                return "Task not found";
+            return task.Status + '\n' + task.ErrorMessage;
+        }
+
+        [HttpGet("/download")]
+        public IActionResult GetArchive(Guid id)
+        {
+            ArchiveTask task = _archiveService.GetById(id); // ищу таску в словаре тасков
+            if (task == null)
+                return NotFound("TaskNotFound");
+            if (task.Status == "Processing")
+                return BadRequest("Archiving in process");
+            if (task.Status == "Failed")
+                return BadRequest(task.ErrorMessage);
+
+            var stream = _archiveService.GetArchiveStream(id);
+            return File(stream, "application/zip", $"{id.ToString().Substring(0, 7)}.zip");
         }
     }
 }

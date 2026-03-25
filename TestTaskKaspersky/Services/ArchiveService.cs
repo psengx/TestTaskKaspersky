@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Compression;
-using System.Net;
 using TestTaskKaspersky.Models;
 
 namespace TestTaskKaspersky.Services
@@ -10,6 +9,14 @@ namespace TestTaskKaspersky.Services
     {
         public static ConcurrentDictionary<Guid, ArchiveTask> archiveTasks = new(); // Словарь задач архивации
         private string archivesPath = ".\\Archives"; // Директория с готовыми архивами
+
+        public ArchiveTask? GetById(Guid id)
+        {
+            if (!archiveTasks.ContainsKey(id))
+                return null;
+
+            return archiveTasks[id];
+        }
 
         // Инициализация задачи архивации
         public Guid InitializeTask(List<string> fileNames)
@@ -31,28 +38,31 @@ namespace TestTaskKaspersky.Services
             task.Status = "Processing";
             await Task.Run(() =>
             {
-                try
-                {
-                    // Создаю путь для конкретного архива (из части айдишника задачи архивации)
-                    string archivePath = Path.Combine(archivesPath, $"{task.Id.ToString().Substring(0, 7)}.zip");
-                    using (var zip = ZipFile.Open(archivePath, ZipArchiveMode.Create))
+               // Создаю путь для конкретного архива (из части айдишника задачи архивации)
+               string archivePath = Path.Combine(archivesPath, $"{task.Id.ToString().Substring(0, 7)}.zip");
+               using (var zip = ZipFile.Open(archivePath, ZipArchiveMode.Create)) // создаю и открываю архив по пути archivePath
+               {
+                    foreach (string file in task.Files)
                     {
-                        foreach (string file in task.Files)
+                        string filePath = Path.Combine(".\\AwesomeStorage", file);
+                        if (!File.Exists(filePath))
                         {
-                            // Надо разобраться че я тут сделала
-                            zip.CreateEntryFromFile(Path.Combine(".\\AwesomeStorage", file), file);
+                            task.Status = "Failed";
+                            task.ErrorMessage = $"File {file} not found in storage";
+                            return;
                         }
+                        // Добавляю в архив каждый файл по своему пути, называю теми же именами внутри архива
+                        zip.CreateEntryFromFile(filePath, file);
                     }
-                    task.Status = "Done";
-                    task.ArchivePath = archivePath;
-                }
-                catch (Exception ex)
-                {
-                    task.ErrorMessage = ex.Message;
-                    task.Status = "Failed";
-                }
+               }
+               task.Status = "Done";
+               task.ArchivePath = archivePath;
             });
-            
+        }
+        public FileStream GetArchiveStream(Guid id)
+        {
+            ArchiveTask? task = GetById(id); // ищу таску в словаре тасков
+            return new FileStream(task.ArchivePath, FileMode.Open, FileAccess.Read);
         }
     }
 }
