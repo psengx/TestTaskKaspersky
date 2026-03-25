@@ -24,7 +24,6 @@ namespace UnitTests
                 Id = Guid.NewGuid(),
                 Files = [],
                 Status = "Done",
-                ArchivePath = ".\\.\\Archives\\"
             };
             dictTasks.TryAdd(_task.Id, _task);
             dictTasks.TryAdd(_doneTask.Id, _doneTask);
@@ -92,7 +91,7 @@ namespace UnitTests
             ArchiveTask? doneTask = _archiveService.GetById(_doneTask.Id);
             string result = _archiveController.GetArchiveTaskStatus(doneTask!.Id);
             Assert.Equal("Done", result);
-            Assert.NotNull(doneTask.ArchivePath);
+            Assert.NotNull(doneTask.ArchiveStream);
         }
     }
 }

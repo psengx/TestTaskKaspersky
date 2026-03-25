@@ -10,6 +10,7 @@ namespace TestTaskKaspersky.Controllers
     {
         private readonly ILogger<ArchiveController> _logger;
         private ArchiveService _archiveService = new ArchiveService();
+        public ArchiveController() { }
         public ArchiveController(ILogger<ArchiveController> logger) { _logger = logger; }
 
         // Создаю задачку архивации
