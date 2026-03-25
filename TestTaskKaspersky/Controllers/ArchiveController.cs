@@ -26,7 +26,9 @@ namespace TestTaskKaspersky.Controllers
             ArchiveTask? task = _archiveService.GetById(id);
             if (task == null)
                 return "Task not found";
-            return task.Status + '\n' + task.ErrorMessage;
+            if (task.ErrorMessage != null)
+                return task.Status + '\n' + task.ErrorMessage;
+            return task.Status;
         }
 
         [HttpGet("/download")]

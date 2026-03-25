@@ -11,7 +11,7 @@ namespace TestTaskKaspersky.Controllers
     public class FilesController : ControllerBase
     {
         [HttpGet] // Гет-запрос для получения файлов
-        public List<string>? GetFiles()
+        public List<string> GetFiles()
         {
             FileService fileService = new FileService();
             var list = fileService.GetFileNames();
