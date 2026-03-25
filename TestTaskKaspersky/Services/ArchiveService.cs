@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.IO;
 using System.IO.Compression;
 using TestTaskKaspersky.Models;
 
@@ -8,7 +9,11 @@ namespace TestTaskKaspersky.Services
     public class ArchiveService
     {
         public static ConcurrentDictionary<Guid, ArchiveTask> archiveTasks = new(); // Словарь задач архивации
-        private string archivesPath = ".\\Archives"; // Директория с готовыми архивами
+        private DirectoryInfo archivesDirectory; // Директория с готовыми архивами
+        public ArchiveService()
+        {
+            archivesDirectory = Directory.CreateDirectory(".\\Archives");
+        }
 
         public ArchiveTask? GetById(Guid id)
         {
@@ -26,7 +31,6 @@ namespace TestTaskKaspersky.Services
                 Id = Guid.NewGuid(),
                 Files = fileNames,
                 Status = "Pending",
-                ArchivePath = ""
             };
             archiveTasks.TryAdd(task.Id, task);
             return task.Id;
@@ -38,10 +42,9 @@ namespace TestTaskKaspersky.Services
             task.Status = "Processing";
             await Task.Run(() =>
             {
-               // Создаю путь для конкретного архива (из части айдишника задачи архивации)
-               string archivePath = Path.Combine(archivesPath, $"{task.Id.ToString().Substring(0, 7)}.zip");
-               using (var zip = ZipFile.Open(archivePath, ZipArchiveMode.Create)) // создаю и открываю архив по пути archivePath
-               {
+                var memoryStream = new MemoryStream();
+                using (var zip = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
                     foreach (string file in task.Files)
                     {
                         string filePath = Path.Combine(".\\AwesomeStorage", file);
@@ -54,15 +57,15 @@ namespace TestTaskKaspersky.Services
                         // Добавляю в архив каждый файл по своему пути, называю теми же именами внутри архива
                         zip.CreateEntryFromFile(filePath, file);
                     }
-               }
-               task.Status = "Done";
-               task.ArchivePath = archivePath;
+                }
+                task.ArchiveStream = memoryStream.ToArray();
+                task.Status = "Done";
             });
         }
-        public FileStream GetArchiveStream(Guid id)
+        public byte[] GetArchiveStream(Guid id)
         {
             ArchiveTask? task = GetById(id); // ищу таску в словаре тасков
-            return new FileStream(task.ArchivePath, FileMode.Open, FileAccess.Read);
+            return task!.ArchiveStream;
         }
     }
 }

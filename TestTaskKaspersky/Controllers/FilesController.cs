@@ -10,12 +10,16 @@ namespace TestTaskKaspersky.Controllers
     [ApiController]
     public class FilesController : ControllerBase
     {
+        private readonly ILogger<FilesController> _logger;
+        public FilesController(ILogger<FilesController> logger) { _logger = logger; }
+
         [HttpGet] // Гет-запрос для получения файлов
         public List<string> GetFiles()
         {
             FileService fileService = new FileService();
             var list = fileService.GetFileNames();
 
+            _logger.LogInformation($"{DateTime.UtcNow}      List of files requested");
             return list;
         }
     }
