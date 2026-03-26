@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using TestTaskKaspersky.Services;
+using AwesomeFilesCore.Services;
 
-namespace TestTaskKaspersky.Controllers
+namespace AwesomeWebApi.Controllers
 {
     // Контроллер для работы с файлами (их получение)
     [Route("api/files")]
@@ -16,7 +16,7 @@ namespace TestTaskKaspersky.Controllers
         [HttpGet] // Гет-запрос для получения файлов
         public List<string> GetFiles()
         {
-            FileService fileService = new FileService();
+            FileService fileService = new FileService("..\\AwesomeStorage");
             var list = fileService.GetFileNames();
 
             _logger.LogInformation($"{DateTime.UtcNow}      List of files requested");

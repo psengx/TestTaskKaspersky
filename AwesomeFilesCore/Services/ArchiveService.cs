@@ -1,18 +1,18 @@
 ﻿using System.Collections.Concurrent;
-using System.IO;
 using System.IO.Compression;
-using TestTaskKaspersky.Models;
+using AwesomeFilesCore.Models;
 
-namespace TestTaskKaspersky.Services
+namespace AwesomeFilesCore.Services
 {
     // Сервис для архивации
     public class ArchiveService
     {
         public static ConcurrentDictionary<Guid, ArchiveTask> archiveTasks = new(); // Словарь задач архивации
-        private DirectoryInfo archivesDirectory; // Директория с готовыми архивами
-        public ArchiveService()
+
+        private readonly string _storagePath;
+        public ArchiveService(string storagePath)
         {
-            archivesDirectory = Directory.CreateDirectory(".\\Archives");
+            _storagePath = storagePath;
         }
 
         public ArchiveTask? GetById(Guid id)
@@ -36,6 +36,16 @@ namespace TestTaskKaspersky.Services
             return task.Id;
         }
 
+        public string GetArchiveTaskStatus(Guid id)
+        {
+            ArchiveTask? task = GetById(id);
+            if (task == null)
+                return "Task not found";
+            if (task.ErrorMessage != null)
+                return task.Status + '\n' + task.ErrorMessage;
+            return task.Status;
+        }
+
         // Процесс архивации
         public async Task Archive(ArchiveTask task)
         {
@@ -47,15 +57,22 @@ namespace TestTaskKaspersky.Services
                 {
                     foreach (string file in task.Files)
                     {
-                        string filePath = Path.Combine(".\\AwesomeStorage", file);
-                        if (!File.Exists(filePath))
+                        string filePath = Path.Combine("..\\..\\..\\..\\AwesomeStorage", file);
+                        string filePathWeb = Path.Combine("..\\AwesomeStorage", file);
+                        if (!File.Exists(filePath) && !File.Exists(filePathWeb))
                         {
                             task.Status = "Failed";
                             task.ErrorMessage = $"File {file} not found in storage";
                             return;
+                        } 
+                        else if (File.Exists(filePath))
+                        {
+                            zip.CreateEntryFromFile(filePath, file);
+                        } 
+                        else 
+                        { 
+                            zip.CreateEntryFromFile(filePathWeb, file);
                         }
-                        // Добавляю в архив каждый файл по своему пути, называю теми же именами внутри архива
-                        zip.CreateEntryFromFile(filePath, file);
                     }
                 }
                 task.ArchiveStream = memoryStream.ToArray();

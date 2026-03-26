@@ -1,16 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TestTaskKaspersky.Models;
-using TestTaskKaspersky.Services;
+using AwesomeFilesCore.Models;
+using AwesomeFilesCore.Services;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
-namespace TestTaskKaspersky.Controllers
+namespace AwesomeWebApi.Controllers
 {
     [Route("api/archive")]
     [ApiController]
     public class ArchiveController : ControllerBase
     {
         private readonly ILogger<ArchiveController> _logger;
-        private ArchiveService _archiveService = new ArchiveService();
-        public ArchiveController() { }
+        private ArchiveService _archiveService = new ArchiveService("..\\AwesomeStorage");
         public ArchiveController(ILogger<ArchiveController> logger) { _logger = logger; }
 
         // Создаю задачку архивации
@@ -28,13 +28,7 @@ namespace TestTaskKaspersky.Controllers
         [HttpGet("/status")]
         public string GetArchiveTaskStatus(Guid id)
         {
-            ArchiveTask? task = _archiveService.GetById(id);
-            _logger.LogInformation($"{DateTime.UtcNow}      Task status requested");
-            if (task == null)
-                return "Task not found";
-            if (task.ErrorMessage != null)
-                return task.Status + '\n' + task.ErrorMessage;
-            return task.Status;
+            return _archiveService.GetArchiveTaskStatus(id);
         }
 
         [HttpGet("/download")]
@@ -47,7 +41,7 @@ namespace TestTaskKaspersky.Controllers
             if (task.Status == "Processing")
                 return BadRequest("Archiving in process");
             if (task.Status == "Failed")
-                return BadRequest(task.ErrorMessage);
+                return BadRequest(task.Status + '\n' + task.ErrorMessage);
 
             byte[] bytes = _archiveService.GetArchiveStream(id);
             return File(bytes, "application/zip", $"{id.ToString().Substring(0, 7)}.zip");

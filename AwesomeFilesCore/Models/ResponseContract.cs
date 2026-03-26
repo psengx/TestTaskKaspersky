@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace TestTaskKaspersky
+namespace AwesomeFilesCore.Models
 {
     public class ResponseContract<T>
     {

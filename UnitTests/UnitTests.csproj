@@ -17,9 +17,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TestTaskKaspersky\TestTaskKaspersky.csproj" />
+    <ProjectReference Include="..\TestTaskKaspersky\AwesomeWebApi.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\AwesomeFilesCore\AwesomeFilesCore.csproj" />
+	</ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>

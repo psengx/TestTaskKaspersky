@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using TestTaskKaspersky.Controllers;
-using TestTaskKaspersky.Models;
-using TestTaskKaspersky.Services;
+using AwesomeWebApi.Controllers;
+using AwesomeFilesCore.Models;
+using AwesomeFilesCore.Services;
 
 namespace UnitTests
 {
@@ -10,7 +10,7 @@ namespace UnitTests
     {
         public ArchiveTests()
         {
-            _archiveService = new ArchiveService();
+            _archiveService = new ArchiveService("..\\..\\..\\..\\AwesomeStorage\\");
             _archiveController = new ArchiveController();
             ConcurrentDictionary<Guid, ArchiveTask> dictTasks = ArchiveService.archiveTasks;
             _task = new()
@@ -24,6 +24,7 @@ namespace UnitTests
                 Id = Guid.NewGuid(),
                 Files = [],
                 Status = "Done",
+                ArchiveStream = [],
             };
             dictTasks.TryAdd(_task.Id, _task);
             dictTasks.TryAdd(_doneTask.Id, _doneTask);
