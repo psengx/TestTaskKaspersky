@@ -1,6 +1,0 @@
-@TestTaskKaspersky_HostAddress = http://localhost:5132
-
-GET {{TestTaskKaspersky_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
