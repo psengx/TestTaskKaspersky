@@ -11,6 +11,7 @@ namespace AwesomeWebApi.Controllers
     {
         private readonly ILogger<ArchiveController> _logger;
         private ArchiveService _archiveService = new ArchiveService("..\\AwesomeStorage");
+        public ArchiveController() { }
         public ArchiveController(ILogger<ArchiveController> logger) { _logger = logger; }
 
         // Создаю задачку архивации
@@ -37,9 +38,9 @@ namespace AwesomeWebApi.Controllers
             ArchiveTask? task = _archiveService.GetById(id); // ищу таску в словаре тасков
             _logger.LogInformation($"{DateTime.UtcNow}      Archive stream requested");
             if (task == null)
-                return NotFound("TaskNotFound");
-            if (task.Status == "Processing")
-                return BadRequest("Archiving in process");
+                return NotFound("Task not found");
+            if (task.Status == "Processing" || task.Status == "Pending")
+                return Accepted("Archiving is not done");
             if (task.Status == "Failed")
                 return BadRequest(task.Status + '\n' + task.ErrorMessage);
 

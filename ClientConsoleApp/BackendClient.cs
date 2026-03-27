@@ -30,7 +30,7 @@ namespace ClientConsoleApp
         public void DownloadArchiveCommand(string id, string path)
         {
             byte[] bytes = _archiveService.GetArchiveStream(Guid.Parse(id));
-            File.WriteAllBytes(path + $"{id.Substring(0,7)}.zip", bytes);
+            File.WriteAllBytes(path + $"/{id.Substring(0,7)}.zip", bytes);
             Console.WriteLine($"Archive was downloaded to {path}");
         }
     }

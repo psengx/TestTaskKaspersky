@@ -22,7 +22,6 @@ or press <Enter> to exit..." + '\n');
                 if (command == null)
                     break;
                 parser.HandleCommand(command);
-
             }
         }
     }
